@@ -4,11 +4,29 @@ const execa = require("execa");
 
 const registerIntegrationTest = async (configPath) => {
 	it(configPath, async () => {
-		await execa("karma", ["start", path.join(__dirname, configPath)], {
+		const fullConfigPath = path.join(__dirname, configPath);
+		const integrationTest = require(fullConfigPath);
+
+		const karmaProcess = await execa("karma", ["start", configPath], {
 			cwd: __dirname,
-			stdio: "inherit",
-			preferLocal: true // allow executing local karma binary
+			preferLocal: true, // allow executing local karma binary
+			reject: false
 		});
+		console.log(karmaProcess.all);
+
+		if (integrationTest.shouldFail && !karmaProcess.failed) {
+			throw new Error("Karma execution should have failed!");
+		}
+		if (!integrationTest.shouldFail && karmaProcess.failed) {
+			throw new Error("Karma execution should not have failed!");
+		}
+
+		if (integrationTest.assertions) {
+			integrationTest.assertions({
+				expect,
+				log: karmaProcess.all
+			});
+		};
 	});
 };
 
@@ -17,6 +35,7 @@ jest.setTimeout(10000);
 
 describe("Integration Tests", () => {
 	const configPaths = glob.sync(["integration/*/karma*.conf.js"], {cwd: __dirname});
+	// const configPaths = ["integration/application-ui5-tooling-error-handling/karma-testsuite-promise-reject.conf.js"];
 	for (const configPath of configPaths) {
 		registerIntegrationTest(configPath);
 	}
