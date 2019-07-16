@@ -12,6 +12,7 @@ const registerIntegrationTest = async (configPath) => {
 			preferLocal: true, // allow executing local karma binary
 			reject: false
 		});
+		// eslint-disable-next-line no-console
 		console.log(karmaProcess.all);
 
 		if (integrationTest.shouldFail && !karmaProcess.failed) {
@@ -26,7 +27,7 @@ const registerIntegrationTest = async (configPath) => {
 				expect,
 				log: karmaProcess.all
 			});
-		};
+		}
 	});
 };
 
